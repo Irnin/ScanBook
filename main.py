@@ -9,11 +9,6 @@ file_name = ""
 image = None
 camera_view = None
 
-# ================================ TO DO ================================
-#   [X] Dodać migającą kropkę na obrazie z kamery
-#   [ ] Pobrać informacje o nazwie kamery
-#   [ ] Resetowanie kamery
-
 lastUpdate = int(time.time())
 
 class CameraThread(threading.Thread):
