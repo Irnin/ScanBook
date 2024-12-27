@@ -2,6 +2,7 @@ from PIL import Image, ImageTk
 
 from model import Model
 from view import View
+import os
 
 class Controller:
 
@@ -21,7 +22,7 @@ class Controller:
 		"""
 
 		try:
-			image_pil = self.model.get_image_from_camera()
+			image_pil = self.model.get_pil_image_from_camera()
 		except:
 			default_image_path = "Image/noSignal.png"
 
@@ -34,6 +35,10 @@ class Controller:
 
 		self.view.after(1, self.update_image_from_camera)
 
+	def save_image_from_camera(self, filename):
+		self.model.save_image(filename)
+
 if __name__ == '__main__':
+
 	app = Controller()
 	app.main()
