@@ -13,6 +13,11 @@ class Controller:
 		self.update_image_from_camera()
 
 	def main(self):
+		# Loading treeview data
+		file_list = self.model.get_saved_images()
+		self.view.load_data_to_treeview(file_list)
+
+		# Starting interface
 		self.view.main()
 
 	def update_image_from_camera(self):
@@ -36,7 +41,14 @@ class Controller:
 		self.view.after(1, self.update_image_from_camera)
 
 	def save_image_from_camera(self, filename):
-		self.model.save_image(filename)
+		"""
+		Method is saving frame from camera and then update treeview
+		"""
+		if filename == '':
+			return
+		
+		name, number = self.model.save_image(filename)
+		self.view.add_data_to_treeview(name, number)
 
 if __name__ == '__main__':
 
