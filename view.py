@@ -21,20 +21,50 @@ class View(tk.Tk):
 
 		ttk.Separator(self, orient='vertical').pack(side='left', fill='y')
 
+		# TREE VIEW
+		self.treeview_frame = tk.Frame()
+		self.treeview = ttk.Treeview(self.treeview_frame, selectmode='browse')
+
+		self.treeview.configure(columns='counter')
+		self.treeview.heading('#0', text='File name')
+		self.treeview.heading('counter', text='Counter')
+
+		self.treeview.pack(fill='both', expand=True)
+
+		self.treeview_frame.pack(side='left', fill='y', expand=True, padx=20, pady=20)
+		ttk.Separator(self, orient='vertical').pack(side='left', fill='y')
+
 		# INPUT VIEW
 		input_frame = tk.Frame(self)
 
 		name_entry = tk.Entry(input_frame, textvariable=self.tk_name)
 		name_entry.pack()
 
-		save_button = tk.Button(input_frame, text='Save', command=lambda: self.controller.save_image_from_camera(self.tk_name.get()))
+		save_button = tk.Button(input_frame, text='Save', command=lambda: self._save_image_action())
 		save_button.pack()
+		self.bind('<Return>', lambda e: self._save_image_action())
 
 		input_frame.pack(side='left', padx=20, pady=20)
+
+	def _save_image_action(self):
+		filename = self.tk_name.get()
+		self.controller.save_image_from_camera(filename)
 
 	def load_frame(self, image_pil):
 		self.camera_view.configure(image=image_pil)
 		self.camera_view.image = image_pil
+
+	def load_data_to_treeview(self, file_list):
+
+
+		for key, list in file_list.items():
+
+			key = self.treeview.insert(parent='', index=tk.END, text=key)
+
+			list = sorted(list)
+
+			for file in list:
+				self.treeview.insert(parent=key, index=tk.END, values=file)
 
 	def main(self):
 		self.mainloop()

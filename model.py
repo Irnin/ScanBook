@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import cv2
 import os
 import re
@@ -63,7 +65,6 @@ class Model:
 		cv2.imwrite(path, image)
 
 	def find_images_with_name(self, filename):
-		result = []
 		image_counter = 0
 
 		regex = f'^{filename}_\d+\.png$'
@@ -74,3 +75,26 @@ class Model:
 					image_counter += 1
 
 		return image_counter
+
+	def get_images(self):
+
+		regex_name = re.compile(r"^(.*?)_")
+		regex_number = re.compile(r"_(\d+)\.png$")
+
+		files_list = defaultdict(list)
+
+		for root, dirs, files in os.walk(self.app_path):
+			for file in files:
+				if file[0] == '.':
+					continue
+
+				name_match = regex_name.search(file)
+				name = name_match.group(1) if name_match else None
+
+				number_match = regex_number.search(file)
+				number = int(number_match.group(1)) if number_match else None
+
+				files_list[name].append(number)
+
+
+		return(files_list)

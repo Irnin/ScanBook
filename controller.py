@@ -13,6 +13,9 @@ class Controller:
 		self.update_image_from_camera()
 
 	def main(self):
+		file_list = self.model.get_images()
+		self.view.load_data_to_treeview(file_list)
+
 		self.view.main()
 
 	def update_image_from_camera(self):
@@ -36,6 +39,9 @@ class Controller:
 		self.view.after(1, self.update_image_from_camera)
 
 	def save_image_from_camera(self, filename):
+		if filename == '':
+			return
+		
 		self.model.save_image(filename)
 
 if __name__ == '__main__':
