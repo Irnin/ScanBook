@@ -55,16 +55,32 @@ class View(tk.Tk):
 		self.camera_view.image = image_pil
 
 	def load_data_to_treeview(self, file_list):
-
-
+		"""
+		Loading data from file_list to treeview
+		"""
 		for key, list in file_list.items():
-
 			key = self.treeview.insert(parent='', index=tk.END, text=key)
 
 			list = sorted(list)
 
 			for file in list:
 				self.treeview.insert(parent=key, index=tk.END, values=file)
+
+	def add_data_to_treeview(self, name, number):
+		"""
+		Method is adding file to treeview
+		"""
+		matched = False
+
+		for child in self.treeview.get_children():
+			element = list(self.treeview.item(child).values())
+			if name == element[0]:
+				self.treeview.insert(parent=child, index=tk.END, values=number)
+				matched = True
+
+		if not matched:
+			row = self.treeview.insert(parent='', index=tk.END, text=name)
+			self.treeview.insert(parent=row, index=tk.END, values=number)
 
 	def main(self):
 		self.mainloop()
