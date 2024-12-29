@@ -6,9 +6,9 @@ import re
 from PIL import Image, ImageTk
 
 class Model:
-	def __init__(self):
+	def __init__(self, path):
 		self.camera = cv2.VideoCapture(0)
-		self.app_path = '/Users/lukaszmichalak/myApp/ScanBook'
+		self.app_path = path
 
 	def get_image_from_camera(self):
 		"""
@@ -72,7 +72,7 @@ class Model:
 
 		image_counter = self.get_number_of_files(provided_filename)
 
-		filename = f'{provided_filename}_{image_counter}.png'
+		filename = f'SCAN_{provided_filename}_{image_counter}.png'
 		path = os.path.join(self.app_path, filename)
 		cv2.imwrite(path, image)
 
@@ -84,7 +84,7 @@ class Model:
 		"""
 		image_counter = 0
 
-		regex = f'^{filename}_\d+\.png$'
+		regex = f'^SCAN_{filename}_\d+\.png$'
 
 		for root, dirs, files in os.walk(self.app_path):
 			for file in files:
@@ -97,7 +97,7 @@ class Model:
 		"""
 		Method is using regex to get name and number from provided file name
 		"""
-		regex_name = re.compile(r"^(.*?)_")
+		regex_name = re.compile(r"^SCAN_(.*?)_")
 		regex_number = re.compile(r"_(\d+)\.png$")
 
 		name_match = regex_name.search(filename)
@@ -111,12 +111,16 @@ class Model:
 	def get_saved_images(self):
 		"""
 		Method is returning list of saved images
+
+		Files are saved with template:
+		SCAN_[SUBJECT]_NAME_COUNTER.png
 		"""
 		files_list = defaultdict(list)
 
 		for root, dirs, files in os.walk(self.app_path):
 			for file in files:
-				if file[0] == '.':
+				# Skip files that wasn't created by our program
+				if not re.match(r'^SCAN_', file):
 					continue
 
 				name, number = self.disassembly_filename(file)

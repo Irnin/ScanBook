@@ -7,18 +7,20 @@ import os
 class Controller:
 
 	def __init__(self):
-		self.model = Model()
+		self.settings = AppSettings()
+
+		self.model = Model(self.settings.get_files_path())
 		self.view = View(self)
 
 		self.update_image_from_camera()
 
 	def main(self):
-		# Loading treeview data
+		self.load_tree_view()
+		self.view.main()
+
+	def load_tree_view(self):
 		file_list = self.model.get_saved_images()
 		self.view.load_data_to_treeview(file_list)
-
-		# Starting interface
-		self.view.main()
 
 	def update_image_from_camera(self):
 		"""
@@ -49,6 +51,28 @@ class Controller:
 		
 		name, number = self.model.save_image(filename)
 		self.view.add_data_to_treeview(name, number)
+
+	# SETTINGS
+	def update_files_path(self, path):
+		self.settings.update_files_path(path)
+		self.view.set_path(path)
+		self.model.app_path = path
+
+		self.view.clear_treeview()
+		self.load_tree_view()
+
+	def get_files_path(self):
+		return self.settings.get_files_path()
+
+class AppSettings:
+	def __init__(self):
+		self.path = '/Users/lukaszmichalak/myApp/ScanBook'
+
+	def update_files_path(self, path):
+		self.path = path
+
+	def get_files_path(self):
+		return  self.path
 
 if __name__ == '__main__':
 
