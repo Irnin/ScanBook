@@ -14,14 +14,15 @@ class Model:
 		"""
 		Get pure image from camera
 		"""
-		result, image = self.camera.read()
 
+		result, image = self.camera.read()
 		return image
 
 	def rotate_image(self, image):
 		"""
 		Rotating image
 		"""
+
 		image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 		return image
 
@@ -29,6 +30,7 @@ class Model:
 		"""
 		Resizing image
 		"""
+
 		scale_percent = 30
 		width = int(image.shape[1] * scale_percent / 100)
 		height = int(image.shape[0] * scale_percent / 100)
@@ -51,6 +53,7 @@ class Model:
 		"""
 		Method is reading frame from camera. Converting it with special method and then converting to PIL image
 		"""
+
 		image = self.get_image_from_camera()
 		image = self.convert_image(image)
 
@@ -67,6 +70,7 @@ class Model:
 
 		Returns tuple of file name and counter to add it into treeview
 		"""
+
 		image = self.get_image_from_camera()
 		image = self.rotate_image(image)
 
@@ -82,9 +86,10 @@ class Model:
 		"""
 		Method is checking how many files we have with provided filename
 		"""
+
 		image_counter = 0
 
-		regex = f'^SCAN_{filename}_\d+\.png$'
+		regex = rf'^SCAN_{filename}_\d+\.png$'
 
 		for root, dirs, files in os.walk(self.app_path):
 			for file in files:
@@ -97,6 +102,7 @@ class Model:
 		"""
 		Method is using regex to get name and number from provided file name
 		"""
+
 		regex_name = re.compile(r"^SCAN_(.*?)_")
 		regex_number = re.compile(r"_(\d+)\.png$")
 
@@ -115,6 +121,7 @@ class Model:
 		Files are saved with template:
 		SCAN_[SUBJECT]_NAME_COUNTER.png
 		"""
+
 		files_list = defaultdict(list)
 
 		for root, dirs, files in os.walk(self.app_path):

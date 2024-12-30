@@ -1,4 +1,6 @@
 from PIL import Image, ImageTk
+import tkinter as tk
+from tkinter import ttk
 
 from model import Model
 from view import View
@@ -14,11 +16,20 @@ class Controller:
 
 		self.update_image_from_camera()
 
+		# BINDS
+
+		# Clicking on image will reset camera loop
+		self.view.camera_view.bind('<Button-1>', lambda e: self.update_image_from_camera())
+
 	def main(self):
 		self.load_tree_view()
 		self.view.main()
 
 	def load_tree_view(self):
+		"""
+		Method reads files in directory and then display it in treeview
+		"""
+
 		file_list = self.model.get_saved_images()
 		self.view.load_data_to_treeview(file_list)
 
@@ -29,9 +40,12 @@ class Controller:
 		"""
 
 		try:
+			if not self.view.winfo_exists():
+				return
+
 			image_pil = self.model.get_pil_image_from_camera()
 		except:
-			default_image_path = "Image/noSignal.png"
+			default_image_path = "image/noSignal.png"
 
 			# I'm using (324, 576) because it's resolution of image sending by
 			# my method and my camera
@@ -46,6 +60,7 @@ class Controller:
 		"""
 		Method is saving frame from camera and then update treeview
 		"""
+
 		if filename == '':
 			return
 		
@@ -54,6 +69,11 @@ class Controller:
 
 	# SETTINGS
 	def update_files_path(self, path):
+		"""
+		Method is called when user change path to work with.
+		Updates settings and reload treeview
+		"""
+
 		self.settings.update_files_path(path)
 		self.view.set_path(path)
 		self.model.app_path = path
@@ -65,6 +85,10 @@ class Controller:
 		return self.settings.get_files_path()
 
 class AppSettings:
+	"""
+	Class was created to simply manage app settings and save them
+	"""
+
 	def __init__(self):
 		self.path = '/Users/lukaszmichalak/myApp/ScanBook'
 

@@ -15,6 +15,7 @@ class View(tk.Tk):
 		file_path = self.controller.get_files_path()
 		self.tk_path = tk.StringVar(value=file_path)
 
+		# Creating interface
 		self.create_camera_view()
 		self.create_treeview_view()
 		self.create_input_view()
@@ -23,23 +24,38 @@ class View(tk.Tk):
 		self.mainloop()
 
 	def _open_settings_window(self):
+		"""
+		Method is opening settings window
+		"""
+
 		settings_window = tk.Toplevel(self)
 
 		settings_window.title('Settings')
-
 
 		path_label = tk.Label(settings_window, textvariable=self.tk_path)
 		path_label.pack()
 
 	def ask_for_path(self):
+		"""
+		Method is opening window to provide directory to work with and update settings
+		"""
+
 		my_dir = filedialog.askdirectory()
 		self.controller.update_files_path(my_dir)
 
 	def set_path(self, path):
+		"""
+		Update tkinter path variable with provided string
+		"""
+
 		self.tk_path.set(path)
 
 	# CAMERA VIEW
 	def create_camera_view(self):
+		"""
+		Creating camera view
+		"""
+
 		self.camera_frame = tk.Frame()
 
 		self.camera_view = tk.Label(self.camera_frame)
@@ -49,15 +65,27 @@ class View(tk.Tk):
 		ttk.Separator(self, orient='vertical').pack(side='left', fill='y')
 
 	def load_frame(self, image_pil):
+		"""
+		Method is using provaded pil image to update camera view label
+		"""
+
 		self.camera_view.configure(image=image_pil)
 		self.camera_view.image = image_pil
 
 	def _save_image_action(self):
+		"""
+		Method is used to call controller method to save file
+		"""
+
 		filename = self.tk_name.get()
 		self.controller.save_image_from_camera(filename)
 
 	# TREE VIEW
 	def create_treeview_view(self):
+		"""
+		Creating treeview
+		"""
+
 		self.treeview_frame = tk.Frame()
 
 		# Path frame
@@ -85,6 +113,7 @@ class View(tk.Tk):
 		"""
 		Loading data from file_list to treeview
 		"""
+
 		for key, list in file_list.items():
 			key = self.treeview.insert(parent='', index=tk.END, text=key)
 
@@ -97,6 +126,7 @@ class View(tk.Tk):
 		"""
 		Method is adding file to treeview
 		"""
+
 		matched = False
 
 		for child in self.treeview.get_children():
@@ -110,11 +140,18 @@ class View(tk.Tk):
 			self.treeview.insert(parent=row, index=tk.END, values=number)
 
 	def clear_treeview(self):
+		"""
+		Removing all elements from treeview
+		"""
 
 		for children in self.treeview.get_children():
 			self.treeview.delete(children)
 
 	def create_input_view(self):
+		"""
+		Creating input view
+		"""
+
 		input_frame = tk.Frame(self)
 
 		name_entry = tk.Entry(input_frame, textvariable=self.tk_name)
