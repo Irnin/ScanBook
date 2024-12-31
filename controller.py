@@ -12,7 +12,7 @@ class Controller:
 		self.settings = AppSettings()
 
 		self.model = Model(self.settings.get_files_path())
-		self.view = View(self)
+		self.view = View(self, self.settings.get_subjects())
 
 		self.update_image_from_camera()
 
@@ -54,7 +54,7 @@ class Controller:
 
 		self.view.load_frame(image_pil)
 
-		self.view.after(1, self.update_image_from_camera)
+		self.view.after(10, self.update_image_from_camera)
 
 	def save_image_from_camera(self, filename):
 		"""
@@ -84,6 +84,21 @@ class Controller:
 	def get_files_path(self):
 		return self.settings.get_files_path()
 
+	def remove_subject(self, subject):
+		subjects = self.settings.remove_subject(subject)
+
+		self.reload_subjects_in_view(subjects)
+
+	def add_subject(self, subject):
+		subjects = self.settings.add_subject(subject)
+
+		self.reload_subjects_in_view(subjects)
+
+	def reload_subjects_in_view(self, subjects):
+		self.view.load_subjects(subjects)
+		self.view.load_subjects_to_settings_view()
+		self.view.load_subjects_to_input_view()
+
 class AppSettings:
 	"""
 	Class was created to simply manage app settings and save them
@@ -91,12 +106,40 @@ class AppSettings:
 
 	def __init__(self):
 		self.path = '/Users/lukaszmichalak/myApp/ScanBook'
+		self.subjects = ['Chemistrt', 'Biology']
 
+	# File path
 	def update_files_path(self, path):
 		self.path = path
 
 	def get_files_path(self):
 		return  self.path
+
+	# Subjects
+	def get_subjects(self):
+		"""
+		Returns subjects
+		"""
+		return self.subjects
+
+	def add_subject(self, subject) -> [str]:
+		"""
+		Adding subject to array and returns it
+		"""
+		self.subjects.append(subject)
+
+		return self.subjects
+
+	def remove_subject(self, subject):
+		"""
+		Method is trying to remove provided subject from array and then returns current list
+		"""
+		try:
+			self.subjects.remove(subject)
+		except:
+			print(f'Could not remove subject {subject} from list')
+
+		return self.subjects
 
 if __name__ == '__main__':
 

@@ -2,12 +2,18 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 
+from PIL.ImageOps import expand
+
+from ScrollableFrame import ScrollableFrame
+
 class View(tk.Tk):
-	def __init__(self, controller):
+	def __init__(self, controller, subjects: [str]):
 		super().__init__()
 		self.controller = controller
+		self.subjects = subjects
 
 		self.title('ScanBooks')
+		self.resizable(False, False)
 
 		# TKINTER VARIABLES
 		self.tk_name = tk.StringVar()
@@ -15,10 +21,18 @@ class View(tk.Tk):
 		file_path = self.controller.get_files_path()
 		self.tk_path = tk.StringVar(value=file_path)
 
+		self.tk_selected_subject = tk.StringVar(value=self.subjects[0] if self.subjects else '')
+
 		# Creating interface
 		self.create_camera_view()
 		self.create_treeview_view()
 		self.create_input_view()
+
+	def load_subjects(self, subjects):
+		self.subjects = []
+
+		for subject in subjects:
+			self.subjects.append(subject)
 
 	def main(self):
 		self.mainloop()
@@ -28,12 +42,59 @@ class View(tk.Tk):
 		Method is opening settings window
 		"""
 
+		tk_new_subject = tk.StringVar()
+
 		settings_window = tk.Toplevel(self)
 
-		settings_window.title('Settings')
+		input_frame = tk.Frame(settings_window)
+		input_frame.pack(fill='x', padx=10, pady=10)
 
-		path_label = tk.Label(settings_window, textvariable=self.tk_path)
-		path_label.pack()
+		entry = tk.Entry(input_frame, textvariable=tk_new_subject)
+		entry.pack(side='left', fill='x', expand=True)
+
+		add_subject_button = tk.Button(input_frame, text='Add', command=lambda: _add_subject())
+		add_subject_button.pack(side='right')
+
+		self.subjects_settings_frame = ScrollableFrame(settings_window)
+		self.subjects_settings_frame.pack(fill='both', expand=True, padx=10, pady=10)
+
+		self.load_subjects_to_settings_view()
+
+		settings_window.bind('<Return>', lambda e: _add_subject())
+
+		def _add_subject():
+			subject = tk_new_subject.get()
+			self.controller.add_subject(subject)
+			tk_new_subject.set('')
+
+	def load_subjects_to_settings_view(self):
+		self.subjects_settings_frame.clear_frame()
+
+		for subject in self.subjects:
+			frame = ttk.Frame(self.subjects_settings_frame.scrollable_frame)
+
+			label = tk.Label(frame, text=subject)
+			label.pack(side='left', anchor='w')
+
+			remove_subject_button = tk.Button(frame, text='Remove', command=lambda s=subject: self.controller.remove_subject(s))
+			remove_subject_button.pack(side='right')
+
+			frame.pack(expand=True, fill='x')
+			separator = ttk.Separator(self.subjects_settings_frame.scrollable_frame, orient='horizontal')
+			separator.pack(fill='x')
+
+	def load_subjects_to_input_view(self):
+		menu = self.option_menu['menu']
+		menu.delete(0, 'end')
+
+		for subject in self.subjects:
+			menu.add_command(label=subject, command=lambda s = subject: self.tk_selected_subject.set(s))
+
+		selected_subject = self.tk_selected_subject.get()
+
+		if not selected_subject in self.subjects:
+			selected_subject = self.subjects[0] if self.subjects else 'WithoutSubject'
+			self.tk_selected_subject.set(selected_subject)
 
 	def ask_for_path(self):
 		"""
@@ -147,12 +208,16 @@ class View(tk.Tk):
 		for children in self.treeview.get_children():
 			self.treeview.delete(children)
 
+	# IMPORT VIEW
 	def create_input_view(self):
 		"""
 		Creating input view
 		"""
 
 		input_frame = tk.Frame(self)
+
+		self.option_menu = tk.OptionMenu(input_frame, self.tk_selected_subject, *self.subjects)
+		self.option_menu.pack()
 
 		name_entry = tk.Entry(input_frame, textvariable=self.tk_name)
 		name_entry.pack()
