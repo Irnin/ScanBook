@@ -65,7 +65,7 @@ class Controller:
 			return
 		
 		file = self.model.save_image(book_name, subject)
-		self.view.add_data_to_treeview(file['name'], file['number'])
+		self.view.add_data_to_treeview(file)
 
 	# SETTINGS
 	def update_files_path(self, path):

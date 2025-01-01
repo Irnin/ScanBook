@@ -160,8 +160,9 @@ class View(tk.Tk):
 
 		self.treeview = ttk.Treeview(self.treeview_frame, selectmode='browse')
 
-		self.treeview.configure(columns='counter')
-		self.treeview.heading('#0', text='File name')
+		self.treeview.configure(columns=('subject', 'counter'))
+		self.treeview.heading('#0', text='Name')
+		self.treeview.heading('subject', text='Subject')
 		self.treeview.heading('counter', text='Counter')
 
 		self.treeview.pack(fill='both', expand=True)
@@ -174,30 +175,32 @@ class View(tk.Tk):
 		Loading data from file_list to treeview
 		"""
 
-		for key, list in file_list.items():
-			key = self.treeview.insert(parent='', index=tk.END, text=key)
+		file_list = sorted(file_list, key=lambda file: (file['subject'], file['name'], file['number']))
 
-			list = sorted(list)
+		for file in file_list:
+			self.add_data_to_treeview(file)
 
-			for file in list:
-				self.treeview.insert(parent=key, index=tk.END, values=file)
-
-	def add_data_to_treeview(self, name, number):
+	def add_data_to_treeview(self, file):
 		"""
 		Method is adding file to treeview
 		"""
+
+		name = file['name']
+		subject = file['subject']
+		number = file['number']
 
 		matched = False
 
 		for child in self.treeview.get_children():
 			element = list(self.treeview.item(child).values())
+
 			if name == element[0]:
-				self.treeview.insert(parent=child, index=tk.END, values=number)
+				self.treeview.insert(parent=child, index=tk.END, values=(subject, number))
 				matched = True
 
 		if not matched:
 			row = self.treeview.insert(parent='', index=tk.END, text=name)
-			self.treeview.insert(parent=row, index=tk.END, values=number)
+			self.treeview.insert(parent=row, index=tk.END,  values=(subject, number))
 
 	def clear_treeview(self):
 		"""

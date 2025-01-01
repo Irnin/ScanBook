@@ -129,7 +129,7 @@ class Model:
 		SCAN_[SUBJECT]_NAME_COUNTER.png
 		"""
 
-		files_list = defaultdict(list)
+		files_list = []
 
 		for root, dirs, files in os.walk(self.app_path):
 			for file_name in files:
@@ -139,10 +139,7 @@ class Model:
 
 				file = self.disassembly_filename(file_name)
 
-				subject = file['subject']
-				name = file['name']
-				number = file['number']
+				files_list.append(file)
 
-				files_list[name].append(number)
 
 		return files_list
