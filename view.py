@@ -2,8 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 
-from PIL.ImageOps import expand
-
 from ScrollableFrame import ScrollableFrame
 
 class View(tk.Tk):
@@ -16,7 +14,7 @@ class View(tk.Tk):
 		self.resizable(False, False)
 
 		# TKINTER VARIABLES
-		self.tk_name = tk.StringVar()
+		self.tk_book_name = tk.StringVar()
 
 		file_path = self.controller.get_files_path()
 		self.tk_path = tk.StringVar(value=file_path)
@@ -138,8 +136,9 @@ class View(tk.Tk):
 		Method is used to call controller method to save file
 		"""
 
-		filename = self.tk_name.get()
-		self.controller.save_image_from_camera(filename)
+		subject = self.tk_selected_subject.get()
+		book_name = self.tk_book_name.get()
+		self.controller.save_image_from_camera(book_name, subject)
 
 	# TREE VIEW
 	def create_treeview_view(self):
@@ -161,8 +160,9 @@ class View(tk.Tk):
 
 		self.treeview = ttk.Treeview(self.treeview_frame, selectmode='browse')
 
-		self.treeview.configure(columns='counter')
-		self.treeview.heading('#0', text='File name')
+		self.treeview.configure(columns=('subject', 'counter'))
+		self.treeview.heading('#0', text='Name')
+		self.treeview.heading('subject', text='Subject')
 		self.treeview.heading('counter', text='Counter')
 
 		self.treeview.pack(fill='both', expand=True)
@@ -175,30 +175,32 @@ class View(tk.Tk):
 		Loading data from file_list to treeview
 		"""
 
-		for key, list in file_list.items():
-			key = self.treeview.insert(parent='', index=tk.END, text=key)
+		file_list = sorted(file_list, key=lambda file: (file['subject'], file['name'], file['number']))
 
-			list = sorted(list)
+		for file in file_list:
+			self.add_data_to_treeview(file)
 
-			for file in list:
-				self.treeview.insert(parent=key, index=tk.END, values=file)
-
-	def add_data_to_treeview(self, name, number):
+	def add_data_to_treeview(self, file):
 		"""
 		Method is adding file to treeview
 		"""
+
+		name = file['name']
+		subject = file['subject']
+		number = file['number']
 
 		matched = False
 
 		for child in self.treeview.get_children():
 			element = list(self.treeview.item(child).values())
+
 			if name == element[0]:
-				self.treeview.insert(parent=child, index=tk.END, values=number)
+				self.treeview.insert(parent=child, index=tk.END, values=(subject, number))
 				matched = True
 
 		if not matched:
 			row = self.treeview.insert(parent='', index=tk.END, text=name)
-			self.treeview.insert(parent=row, index=tk.END, values=number)
+			self.treeview.insert(parent=row, index=tk.END,  values=(subject, number))
 
 	def clear_treeview(self):
 		"""
@@ -219,7 +221,7 @@ class View(tk.Tk):
 		self.option_menu = tk.OptionMenu(input_frame, self.tk_selected_subject, *self.subjects)
 		self.option_menu.pack()
 
-		name_entry = tk.Entry(input_frame, textvariable=self.tk_name)
+		name_entry = tk.Entry(input_frame, textvariable=self.tk_book_name)
 		name_entry.pack()
 
 		save_button = tk.Button(input_frame, text='Save', command=lambda: self._save_image_action())
