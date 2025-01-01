@@ -1,3 +1,5 @@
+import pickle
+
 from PIL import Image, ImageTk
 import tkinter as tk
 from tkinter import ttk
@@ -66,6 +68,14 @@ class Controller:
 		
 		file = self.model.save_image(book_name, subject)
 		self.view.add_data_to_treeview(file)
+
+	def preview_image(self, file_name):
+		full_file_path = f'{self.settings.get_files_path()}/{file_name}'
+
+		image_pil = Image.open(full_file_path).resize((324, 576))
+		image_pil = ImageTk.PhotoImage(image_pil)
+
+		self.view.load_preview(image_pil)
 
 	# SETTINGS
 	def update_files_path(self, path):

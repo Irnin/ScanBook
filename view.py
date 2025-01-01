@@ -21,10 +21,15 @@ class View(tk.Tk):
 
 		self.tk_selected_subject = tk.StringVar(value=self.subjects[0] if self.subjects else '')
 
+		# FONT
+		self.bold_font = ('Receiptional Receipt', 20, 'bold')
+
 		# Creating interface
 		self.create_camera_view()
 		self.create_treeview_view()
-		self.create_input_view()
+		self.create_preview_view()
+
+		self.bind('<Return>', lambda e: self._save_image_action())
 
 	def load_subjects(self, subjects):
 		self.subjects = []
@@ -82,7 +87,7 @@ class View(tk.Tk):
 			separator.pack(fill='x')
 
 	def load_subjects_to_input_view(self):
-		menu = self.option_menu['menu']
+		menu = self.subject_menu['menu']
 		menu.delete(0, 'end')
 
 		for subject in self.subjects:
@@ -115,12 +120,34 @@ class View(tk.Tk):
 		Creating camera view
 		"""
 
-		self.camera_frame = tk.Frame()
+		camera_frame = tk.Frame()
+		camera_frame.pack(side='left', fill='both', padx=20, pady=20)
 
-		self.camera_view = tk.Label(self.camera_frame)
+		tk.Label(camera_frame, text='Camera:', font=self.bold_font).pack(anchor='w')
+
+		self.camera_view = tk.Label(camera_frame)
 		self.camera_view.pack()
 
-		self.camera_frame.pack(side='left', fill='both', padx=20, pady=20)
+		ttk.Separator(camera_frame, orient='horizontal').pack(fill='x', pady=10)
+
+		input_box = tk.Frame(camera_frame)
+		input_box.pack(fill='x')
+
+		input_box.rowconfigure((0, 1), weight=1)
+		input_box.columnconfigure((0, 1), weight=1)
+
+		self.subject_menu = tk.OptionMenu(input_box, self.tk_selected_subject, *self.subjects)
+		self.subject_menu.grid(row=0, column=0, sticky='nsew')
+
+		subject_settings = tk.Button(input_box, text='Subjects...', command=lambda: self._open_settings_window())
+		subject_settings.grid(row=0, column=1, sticky='nsew')
+
+		name_entry = tk.Entry(input_box, textvariable=self.tk_book_name)
+		name_entry.grid(row=1, column=0, sticky='nsew')
+
+		save_button = tk.Button(input_box, text='Save', command=lambda: self._save_image_action())
+		save_button.grid(row=1, column=1, sticky='nsew')
+
 		ttk.Separator(self, orient='vertical').pack(side='left', fill='y')
 
 	def load_frame(self, image_pil):
@@ -146,11 +173,13 @@ class View(tk.Tk):
 		Creating treeview
 		"""
 
-		self.treeview_frame = tk.Frame()
+		treeview_frame = tk.Frame()
+
+		tk.Label(treeview_frame, text='Saved books:', font=self.bold_font).pack(anchor='w')
 
 		# Path frame
-		path_frame = tk.Frame(self.treeview_frame)
-		path_frame.pack(pady=5)
+		path_frame = tk.Frame(treeview_frame)
+		path_frame.pack(pady=5, fill='x')
 
 		select_path_button = tk.Button(path_frame, text='Select directory', command=lambda: self.ask_for_path())
 		select_path_button.pack(side='left')
@@ -158,7 +187,7 @@ class View(tk.Tk):
 		path_label = tk.Label(path_frame, textvariable=self.tk_path)
 		path_label.pack(side='left', expand=True, fill='x')
 
-		self.treeview = ttk.Treeview(self.treeview_frame, selectmode='browse')
+		self.treeview = ttk.Treeview(treeview_frame, selectmode='browse')
 
 		self.treeview.configure(columns=('subject', 'counter'))
 		self.treeview.heading('#0', text='Name')
@@ -167,8 +196,16 @@ class View(tk.Tk):
 
 		self.treeview.pack(fill='both', expand=True)
 
-		self.treeview_frame.pack(side='left', fill='y', expand=True, padx=20, pady=20)
+		treeview_frame.pack(side='left', fill='y', expand=True, padx=20, pady=20)
 		ttk.Separator(self, orient='vertical').pack(side='left', fill='y')
+
+		self.treeview.bind('<<TreeviewSelect>>', self.book_selected)
+
+	def book_selected(self, e):
+		for i in self.treeview.selection():
+			if self.treeview.item(i)['values']:
+				selected_book_values = self.treeview.item(i)['values']
+				self.controller.preview_image(selected_book_values[2])
 
 	def load_data_to_treeview(self, file_list):
 		"""
@@ -188,6 +225,7 @@ class View(tk.Tk):
 		name = file['name']
 		subject = file['subject']
 		number = file['number']
+		raw_name = f'SCAN_{subject}_{name}_{number}.png'
 
 		matched = False
 
@@ -195,12 +233,12 @@ class View(tk.Tk):
 			element = list(self.treeview.item(child).values())
 
 			if name == element[0]:
-				self.treeview.insert(parent=child, index=tk.END, values=(subject, number))
+				self.treeview.insert(parent=child, index=tk.END, values=(subject, number, raw_name))
 				matched = True
 
 		if not matched:
 			row = self.treeview.insert(parent='', index=tk.END, text=name)
-			self.treeview.insert(parent=row, index=tk.END,  values=(subject, number))
+			self.treeview.insert(parent=row, index=tk.END,  values=(subject, number, raw_name))
 
 	def clear_treeview(self):
 		"""
@@ -210,25 +248,23 @@ class View(tk.Tk):
 		for children in self.treeview.get_children():
 			self.treeview.delete(children)
 
+	def load_preview(self, image_pil):
+		self.preview.configure(image=image_pil)
+		self.preview.image = image_pil
+
 	# IMPORT VIEW
-	def create_input_view(self):
+	def create_preview_view(self):
 		"""
 		Creating input view
 		"""
 
-		input_frame = tk.Frame(self)
 
-		self.option_menu = tk.OptionMenu(input_frame, self.tk_selected_subject, *self.subjects)
-		self.option_menu.pack()
+		input_frame = tk.Frame(self, width=324)
+		input_frame.pack_propagate(False)
 
-		name_entry = tk.Entry(input_frame, textvariable=self.tk_book_name)
-		name_entry.pack()
+		tk.Label(input_frame, text='Preview:', font=self.bold_font).pack(anchor='w')
 
-		save_button = tk.Button(input_frame, text='Save', command=lambda: self._save_image_action())
-		save_button.pack()
-		self.bind('<Return>', lambda e: self._save_image_action())
+		self.preview = tk.Label(input_frame)
+		self.preview.pack(fill='both', expand=True)
 
-		settings_button = tk.Button(input_frame, text='Settings', command=lambda: self._open_settings_window())
-		settings_button.pack()
-
-		input_frame.pack(side='left', padx=20, pady=20)
+		input_frame.pack(side='left', padx=20, pady=20, fill='both')
