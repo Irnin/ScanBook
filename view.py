@@ -2,8 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 
-from PIL.ImageOps import expand
-
 from ScrollableFrame import ScrollableFrame
 
 class View(tk.Tk):
@@ -16,7 +14,7 @@ class View(tk.Tk):
 		self.resizable(False, False)
 
 		# TKINTER VARIABLES
-		self.tk_name = tk.StringVar()
+		self.tk_book_name = tk.StringVar()
 
 		file_path = self.controller.get_files_path()
 		self.tk_path = tk.StringVar(value=file_path)
@@ -138,8 +136,9 @@ class View(tk.Tk):
 		Method is used to call controller method to save file
 		"""
 
-		filename = self.tk_name.get()
-		self.controller.save_image_from_camera(filename)
+		subject = self.tk_selected_subject.get()
+		book_name = self.tk_book_name.get()
+		self.controller.save_image_from_camera(book_name, subject)
 
 	# TREE VIEW
 	def create_treeview_view(self):
@@ -219,7 +218,7 @@ class View(tk.Tk):
 		self.option_menu = tk.OptionMenu(input_frame, self.tk_selected_subject, *self.subjects)
 		self.option_menu.pack()
 
-		name_entry = tk.Entry(input_frame, textvariable=self.tk_name)
+		name_entry = tk.Entry(input_frame, textvariable=self.tk_book_name)
 		name_entry.pack()
 
 		save_button = tk.Button(input_frame, text='Save', command=lambda: self._save_image_action())

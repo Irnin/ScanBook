@@ -63,7 +63,7 @@ class Model:
 
 		return image_pil
 
-	def save_image(self, provided_filename):
+	def save_image(self, book_name, subject):
 		"""
 		Method is saving current frame with provided filename. To protect from overwriting method is
 		adding counter.
@@ -74,13 +74,18 @@ class Model:
 		image = self.get_image_from_camera()
 		image = self.rotate_image(image)
 
-		image_counter = self.get_number_of_files(provided_filename)
+		image_counter = self.get_number_of_files(book_name)
 
-		filename = f'SCAN_{provided_filename}_{image_counter}.png'
+		filename = f'SCAN_{subject}_{book_name}_{image_counter}.png'
 		path = os.path.join(self.app_path, filename)
 		cv2.imwrite(path, image)
 
-		return (provided_filename, image_counter)
+		file = dict()
+		file['name'] = book_name
+		file['subject'] = subject
+		file['number'] = image_counter
+
+		return file
 
 	def get_number_of_files(self, filename):
 		"""
@@ -89,12 +94,15 @@ class Model:
 
 		image_counter = 0
 
-		regex = rf'^SCAN_{filename}_\d+\.png$'
-
 		for root, dirs, files in os.walk(self.app_path):
 			for file in files:
-				if re.match(regex, file):
-					image_counter += 1
+				if not file.startswith('SCAN_'):
+					continue
+
+				if not filename in file:
+					continue
+
+				image_counter += 1
 
 		return image_counter
 
@@ -103,16 +111,15 @@ class Model:
 		Method is using regex to get name and number from provided file name
 		"""
 
-		regex_name = re.compile(r"^SCAN_(.*?)_")
-		regex_number = re.compile(r"_(\d+)\.png$")
+		filename = filename.removesuffix('.png')
+		disassembled_filename = filename.split('_')
 
-		name_match = regex_name.search(filename)
-		name = name_match.group(1) if name_match else None
+		file = dict()
+		file['name'] = disassembled_filename[2]
+		file['subject'] = disassembled_filename[1]
+		file['number'] = disassembled_filename[3]
 
-		number_match = regex_number.search(filename)
-		number = int(number_match.group(1)) if number_match else None
-
-		return name, number
+		return file
 
 	def get_saved_images(self):
 		"""
@@ -125,12 +132,16 @@ class Model:
 		files_list = defaultdict(list)
 
 		for root, dirs, files in os.walk(self.app_path):
-			for file in files:
+			for file_name in files:
 				# Skip files that wasn't created by our program
-				if not re.match(r'^SCAN_', file):
+				if not file_name.startswith('SCAN_'):
 					continue
 
-				name, number = self.disassembly_filename(file)
+				file = self.disassembly_filename(file_name)
+
+				subject = file['subject']
+				name = file['name']
+				number = file['number']
 
 				files_list[name].append(number)
 

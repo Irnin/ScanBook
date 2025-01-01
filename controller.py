@@ -56,16 +56,16 @@ class Controller:
 
 		self.view.after(10, self.update_image_from_camera)
 
-	def save_image_from_camera(self, filename):
+	def save_image_from_camera(self, book_name, subject):
 		"""
 		Method is saving frame from camera and then update treeview
 		"""
 
-		if filename == '':
+		if book_name == '':
 			return
 		
-		name, number = self.model.save_image(filename)
-		self.view.add_data_to_treeview(name, number)
+		file = self.model.save_image(book_name, subject)
+		self.view.add_data_to_treeview(file['name'], file['number'])
 
 	# SETTINGS
 	def update_files_path(self, path):
@@ -106,7 +106,7 @@ class AppSettings:
 
 	def __init__(self):
 		self.path = '/Users/lukaszmichalak/myApp/ScanBook'
-		self.subjects = ['Chemistrt', 'Biology']
+		self.subjects = ['Chemistry', 'Biology']
 
 	# File path
 	def update_files_path(self, path):
