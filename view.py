@@ -104,8 +104,12 @@ class View(tk.Tk):
 		Method is opening window to provide directory to work with and update settings
 		"""
 
-		my_dir = filedialog.askdirectory()
-		self.controller.update_files_path(my_dir)
+		provided_path = filedialog.askdirectory()
+
+		if provided_path == '':
+			return
+
+		self.controller.update_files_path(provided_path)
 
 	def set_path(self, path):
 		"""

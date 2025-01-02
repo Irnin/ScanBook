@@ -115,12 +115,40 @@ class AppSettings:
 	"""
 
 	def __init__(self):
-		self.path = '/Users/lukaszmichalak/myApp/ScanBook'
-		self.subjects = ['Chemistry', 'Biology']
+		directory = os.path.expanduser("~/myApp/ScanBook")
+		os.makedirs(directory, exist_ok=True)
+		self.save_file_path = os.path.join(directory, "settings.pkl")
+
+		self.load()
+
+	# Save settings
+	def save(self):
+		"""
+		Save data from model to file
+		"""
+		with open(self.save_file_path, 'wb') as file:
+			pickle.dump(self, file)
+
+	def load(self):
+		"""
+		Load model data from file
+		"""
+
+		try:
+			with open(self.save_file_path, 'rb') as file:
+				loaded_model = pickle.load(file)
+				self.path = loaded_model.path
+				self.subjects = loaded_model.subjects
+		except Exception as e:
+			print(e)
+			print("Can not load")
+			self.path = '/Users/lukaszmichalak/myApp/ScanBook'
+			self.subjects = ['Chemistry', 'Biology']
 
 	# File path
 	def update_files_path(self, path):
 		self.path = path
+		self.save()
 
 	def get_files_path(self):
 		return  self.path
@@ -137,6 +165,7 @@ class AppSettings:
 		Adding subject to array and returns it
 		"""
 		self.subjects.append(subject)
+		self.save()
 
 		return self.subjects
 
@@ -146,6 +175,7 @@ class AppSettings:
 		"""
 		try:
 			self.subjects.remove(subject)
+			self.save()
 		except:
 			print(f'Could not remove subject {subject} from list')
 
