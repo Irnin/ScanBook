@@ -56,7 +56,7 @@ class Controller:
 
 		self.view.load_frame(image_pil)
 
-		self.view.after(10, self.update_image_from_camera)
+		self.view.after(25, self.update_image_from_camera)
 
 	def save_image_from_camera(self, book_name, subject):
 		"""
@@ -76,6 +76,20 @@ class Controller:
 		image_pil = ImageTk.PhotoImage(image_pil)
 
 		self.view.load_preview(image_pil)
+
+	def delete_image(self, file_name):
+		full_file_path = f'{self.settings.get_files_path()}/{file_name}'
+		try:
+			os.remove(full_file_path)
+		except:
+			print(f"Could not remove file {full_file_path}")
+
+		self.view.clear_treeview()
+		self.load_tree_view()
+
+	def export_images(self):
+		self.model.export_saved_images()
+		self.view.clear_treeview()
 
 	# SETTINGS
 	def update_files_path(self, path):

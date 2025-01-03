@@ -2,7 +2,8 @@ from collections import defaultdict
 
 import cv2
 import os
-import re
+import shutil
+import py7zr
 from PIL import Image, ImageTk
 
 class Model:
@@ -94,30 +95,33 @@ class Model:
 
 		image_counter = 0
 
-		for root, dirs, files in os.walk(self.app_path):
-			for file in files:
-				if not file.startswith('SCAN_'):
-					continue
+		for file in os.listdir(self.app_path):
+			if not file.startswith('SCAN_'):
+				continue
 
-				if not filename in file:
-					continue
+			if not filename in file:
+				continue
 
-				image_counter += 1
+			decoded_file = self._disassembly_filename(file)
 
-		return image_counter
+			if int(decoded_file['number']) > image_counter:
+				image_counter = int(decoded_file['number'])
 
-	def disassembly_filename(self, filename):
+		return image_counter + 1
+
+	def _disassembly_filename(self, filename):
 		"""
 		Method is using regex to get name and number from provided file name
 		"""
-
+		file = dict()
+		file['original'] = filename
 		filename = filename.removesuffix('.png')
 		disassembled_filename = filename.split('_')
 
-		file = dict()
 		file['name'] = disassembled_filename[2]
 		file['subject'] = disassembled_filename[1]
 		file['number'] = disassembled_filename[3]
+		file['short_name'] = fr"{file['name']}_{file['number']}.png"
 
 		return file
 
@@ -131,15 +135,38 @@ class Model:
 
 		files_list = []
 
-		for root, dirs, files in os.walk(self.app_path):
-			for file_name in files:
-				# Skip files that wasn't created by our program
-				if not file_name.startswith('SCAN_'):
-					continue
+		for file_name in os.listdir(self.app_path):
 
-				file = self.disassembly_filename(file_name)
+			# Skip files that wasn't created by our program
+			if not file_name.startswith('SCAN_'):
+				continue
 
-				files_list.append(file)
+			file = self._disassembly_filename(file_name)
 
+			files_list.append(file)
 
 		return files_list
+
+	def export_saved_images(self):
+
+		files = self.get_saved_images()
+
+		# Reorganizing files
+		for file in files:
+			root = self.app_path
+
+			original_path = fr"{root}/{file['original']}"
+			new_path = fr"{root}/export/{file['subject']}/{file['name']}/{file['short_name']}"
+
+			os.makedirs(os.path.dirname(new_path), exist_ok=True)
+			shutil.move(original_path, new_path)
+
+		# Packing it
+		folder_path = fr'{self.app_path}/export/'
+		output_path = fr'{self.app_path}/ScannedBooks.7z'
+
+		with py7zr.SevenZipFile(output_path, 'w') as archive:
+			archive.writeall(folder_path, os.path.basename(folder_path))
+
+		# Removing old files
+		shutil.rmtree(folder_path)
