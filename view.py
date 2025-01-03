@@ -47,9 +47,10 @@ class View(tk.Tk):
 
 		tk_new_subject = tk.StringVar()
 
-		settings_window = tk.Toplevel(self)
+		subject_window = tk.Toplevel(self)
+		subject_window.title('Subjects')
 
-		input_frame = tk.Frame(settings_window)
+		input_frame = tk.Frame(subject_window)
 		input_frame.pack(fill='x', padx=10, pady=10)
 
 		entry = tk.Entry(input_frame, textvariable=tk_new_subject)
@@ -58,12 +59,12 @@ class View(tk.Tk):
 		add_subject_button = tk.Button(input_frame, text='Add', command=lambda: _add_subject())
 		add_subject_button.pack(side='right')
 
-		self.subjects_settings_frame = ScrollableFrame(settings_window)
+		self.subjects_settings_frame = ScrollableFrame(subject_window)
 		self.subjects_settings_frame.pack(fill='both', expand=True, padx=10, pady=10)
 
 		self.load_subjects_to_settings_view()
 
-		settings_window.bind('<Return>', lambda e: _add_subject())
+		subject_window.bind('<Return>', lambda e: _add_subject())
 
 		def _add_subject():
 			subject = tk_new_subject.get()
@@ -200,6 +201,12 @@ class View(tk.Tk):
 
 		self.treeview.pack(fill='both', expand=True)
 
+		options = tk.Frame(treeview_frame)
+		self.delete_button = tk.Button(treeview_frame, text='Delete', state='disabled', command=lambda: self.delete_book())
+		self.delete_button.pack(anchor='w')
+		tk.Button(treeview_frame, text='Export', command=lambda: self.controller.export_images()).pack(anchor='e')
+		options.pack()
+
 		treeview_frame.pack(side='left', fill='y', expand=True, padx=20, pady=20)
 		ttk.Separator(self, orient='vertical').pack(side='left', fill='y')
 
@@ -209,7 +216,14 @@ class View(tk.Tk):
 		for i in self.treeview.selection():
 			if self.treeview.item(i)['values']:
 				selected_book_values = self.treeview.item(i)['values']
-				self.controller.preview_image(selected_book_values[2])
+				self.selected_book_name=selected_book_values[2]
+				self.controller.preview_image(self.selected_book_name)
+
+				self.delete_button['state']='normal'
+
+	def delete_book(self):
+		self.controller.delete_image(self.selected_book_name)
+		self.delete_button['state']='disabled'
 
 	def load_data_to_treeview(self, file_list):
 		"""
