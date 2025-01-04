@@ -213,6 +213,10 @@ class View(tk.Tk):
 		self.treeview.bind('<<TreeviewSelect>>', self.book_selected)
 
 	def book_selected(self, e):
+		"""
+		Load preview image if book is selected
+		"""
+
 		for i in self.treeview.selection():
 			if self.treeview.item(i)['values']:
 				selected_book_values = self.treeview.item(i)['values']
@@ -222,6 +226,9 @@ class View(tk.Tk):
 				self.delete_button['state']='normal'
 
 	def delete_book(self):
+		"""
+		Method calls controler to remove selected book
+		"""
 		self.controller.delete_image(self.selected_book_name)
 		self.delete_button['state']='disabled'
 
@@ -267,6 +274,9 @@ class View(tk.Tk):
 			self.treeview.delete(children)
 
 	def load_preview(self, image_pil):
+		"""
+		Load preview of selected item
+		"""
 		self.preview.configure(image=image_pil)
 		self.preview.image = image_pil
 
@@ -276,13 +286,12 @@ class View(tk.Tk):
 		Creating input view
 		"""
 
+		preview_frame = tk.Frame(self, width=324)
+		preview_frame.pack_propagate(False)
 
-		input_frame = tk.Frame(self, width=324)
-		input_frame.pack_propagate(False)
+		tk.Label(preview_frame, text='Preview:', font=self.bold_font).pack(anchor='w')
 
-		tk.Label(input_frame, text='Preview:', font=self.bold_font).pack(anchor='w')
-
-		self.preview = tk.Label(input_frame)
+		self.preview = tk.Label(preview_frame)
 		self.preview.pack(fill='both', expand=True)
 
-		input_frame.pack(side='left', padx=20, pady=20, fill='both')
+		preview_frame.pack(side='left', padx=20, pady=20, fill='both')
